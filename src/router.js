@@ -1,27 +1,43 @@
-// роутер отслеживает изменения адресной строки и перенапраляет пользователя на нужные страницы
+// роутер отслеживает изменения адресной строки и перенаправляет пользователя на нужные страницы
+import {Dashboard} from "./components/dashboard";
+import {Login} from "./components/login";
+import {SignUp} from "./components/sign-up";
+
 export class Router {
     constructor() {
+        this.titlePageElement = document.getElementById('title');
+        this.contentPageElement = document.getElementById('contend');
+
         this.initEvents();
             this.routes = [
                 {
                     route: '/',
                     title: 'Дашборд',
-                    filePathTemplate: ''
+                    filePathTemplate: '/templates/dashboard.html',
+                    load: () => {
+                        new Dashboard();
+                    }
                 },
                 {
                     route: '/404',
                     title: 'Страница не найдена',
-                    filePathTemplate: ''
+                    filePathTemplate: '/templates/404.html'
                 },
                 {
                     route: '/login',
-                    title: 'Дашборд',
-                    filePathTemplate: ''
+                    title: 'Авторизация',
+                    filePathTemplate: '/templates/login.html',
+                    load: () => {
+                        new Login();
+                    }
                 },
                 {
                     route: '/sign-up',
-                    title: 'Дашборд',
-                    filePathTemplate: ''
+                    title: 'Регистрация',
+                    filePathTemplate: '/templates/sign-up.html',
+                    load: () => {
+                        new SignUp();
+                    }
                 },
             ];
     }
@@ -31,12 +47,22 @@ export class Router {
         window.addEventListener('popstate', this.activateRoute.bind(this)); //отловили переход на другую страницу
     }
 
-    activateRoute() {
+    async activateRoute() {
         const urlRoute = window.location.pathname;
-        const newRoute = this.route.find(item => item === urlRoute);
+        const newRoute = this.routes.find(item => item.route === urlRoute);
 
         if (newRoute) {
+            if (newRoute.title) {
+                this.titlePageElement.innerText = newRoute.title + ' | Freelance Studio';
+            }
 
+            if (newRoute.filePathTemplate) {
+                this.contentPageElement.innerHTML = await fetch(newRoute.filePathTemplate).then(response => response.text())
+            }
+
+            if (newRoute.load && typeof newRoute.load === 'function') {
+                newRoute.load();
+            }
         } else {
             console.log('No route found');
             window.location = '/404';
