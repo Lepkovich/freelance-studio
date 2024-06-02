@@ -36,7 +36,7 @@ export class Router {
                     document.body.classList.add('login-page');
                     document.body.style.height = '100vh';
                     // -----
-                    new Login();
+                    new Login(this.openNewRoute.bind(this));
                 },
                 unload: () => {
                     //удалим добавленные классы перед обновлением шаблона
@@ -55,7 +55,7 @@ export class Router {
                     document.body.classList.add('register-page');
                     document.body.style.height = '100vh';
                     // -----
-                    new SignUp();
+                    new SignUp(this.openNewRoute.bind(this));
                 },
                 unload: () => {
                     //удалим добавленные классы перед обновлением шаблона
@@ -70,10 +70,16 @@ export class Router {
     initEvents() {
         window.addEventListener('DOMContentLoaded', this.activateRoute.bind(this)); //отловили загрузку страницы
         window.addEventListener('popstate', this.activateRoute.bind(this)); //отловили переход на другую страницу
-        document.addEventListener('click', this.openNewRoute.bind(this)) //ловим все клики по странице
+        document.addEventListener('click', this.clickHandler.bind(this)) //ловим все клики по странице
     }
 
-    async openNewRoute(e) {
+    async openNewRoute(url) {
+        const currentRoute = window.location.pathname;
+        history.pushState({}, '', url); //обновим url адрес в адресной строке
+        await this.activateRoute(null, currentRoute);
+    }
+
+    async clickHandler(e) {
 
         let element = null;
         if (e.target.nodeName === 'A') {
@@ -89,9 +95,7 @@ export class Router {
                 return;
             }
 
-            const currentRoute = window.location.pathname;
-            history.pushState({}, '', url); //обновим url адрес в адресной строке
-            await this.activateRoute(null, currentRoute);
+            await this.openNewRoute(url);
         }
     }
 
