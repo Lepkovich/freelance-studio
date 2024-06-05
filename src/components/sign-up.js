@@ -1,7 +1,14 @@
+import {AuthUtils} from "../utils/auth-utils";
+import {HttpUtils} from "../utils/http-utils";
+
 export class SignUp {
 
     constructor(openNewRoute) {
         this.openNewRoute = openNewRoute;
+
+        if (AuthUtils.getAuthInfo(AuthUtils.accessTokenKey)) {
+            return this.openNewRoute('/'); //если уже залогинены и в localStorage хранится accessToken, на signup не переходим
+        }
 
         // найдем наши поля формы
         this.nameElement = document.getElementById('name');
@@ -76,31 +83,21 @@ export class SignUp {
         this.commonErrorElement.style.display = 'none';
 
         if (this.validateForm()) {
-            const response = await fetch('http://localhost:3000/api/signup', {
-                method: 'POST',
-                headers: {
-                    'Content-type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify ({
-                    name: this.nameElement.value,
-                    lastName: this.lastNameElement.value,
-                    email: this.emailElement.value,
-                    password: this.passwordElement.value,
-                })
+
+            const result = await HttpUtils.request('/signup', "POST", {
+                name: this.nameElement.value,
+                lastName: this.lastNameElement.value,
+                email: this.emailElement.value,
+                password: this.passwordElement.value,
             });
 
-            const result = await response.json();
 
-
-            if (result.error || !result.accessToken || !result.refreshToken || !result.id || !result.name) {
+            if (result.error || !result.response || (result.response && (!result.response.accessToken || !result.response.refreshToken || !result.response.id || !result.response.name))) {
                 this.commonErrorElement.style.display = 'block';
                 return;
             }
 
-            localStorage.setItem('accessToken', result.accessToken);
-            localStorage.setItem('refreshToken', result.refreshToken);
-            localStorage.setItem('userInfo', JSON.stringify({id: result.id, name: result.name}));
+            AuthUtils.setAuthInfo(result.response.accessToken, result.response.refreshToken, {id: result.response.id, name: result.response.name});
 
             this.openNewRoute('/');
         }
