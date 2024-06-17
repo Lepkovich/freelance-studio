@@ -1,5 +1,5 @@
-import {AuthUtils} from "../utils/auth-utils";
-import {HttpUtils} from "../utils/http-utils";
+import {AuthUtils} from "../../utils/auth-utils";
+import {HttpUtils} from "../../utils/http-utils";
 
 export class SignUp {
 
@@ -84,7 +84,7 @@ export class SignUp {
 
         if (this.validateForm()) {
 
-            const result = await HttpUtils.request('/signup', "POST", {
+            const result = await HttpUtils.request('/signup', "POST", false, {
                 name: this.nameElement.value,
                 lastName: this.lastNameElement.value,
                 email: this.emailElement.value,

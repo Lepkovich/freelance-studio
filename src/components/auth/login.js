@@ -1,5 +1,5 @@
-import {AuthUtils} from "../utils/auth-utils";
-import {HttpUtils} from "../utils/http-utils";
+import {AuthUtils} from "../../utils/auth-utils";
+import {HttpUtils} from "../../utils/http-utils";
 
 export class Login {
     constructor(openNewRoute) {
@@ -43,7 +43,7 @@ export class Login {
 
         if (this.validateForm()) {
 
-            const result = await HttpUtils.request('/login', "POST", {
+            const result = await HttpUtils.request('/login', "POST", false,{
                 email: this.emailElement.value,
                 password: this.passwordElement.value,
                 rememberMe: this.rememberMeElement.checked
@@ -55,7 +55,10 @@ export class Login {
                 return;
             }
 
-            AuthUtils.setAuthInfo(result.response.accessToken, result.response.refreshToken, {id: result.response.id, name: result.response.name});
+            AuthUtils.setAuthInfo(result.response.accessToken, result.response.refreshToken, {
+                id: result.response.id,
+                name: result.response.name
+            });
 
             this.openNewRoute('/');
         }

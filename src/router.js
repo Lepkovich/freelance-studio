@@ -1,8 +1,11 @@
 // роутер отслеживает изменения адресной строки и перенаправляет пользователя на нужные страницы
 import {Dashboard} from "./components/dashboard";
-import {Login} from "./components/login";
-import {SignUp} from "./components/sign-up";
-import {Logout} from "./components/logout";
+import {Login} from "./components/auth/login";
+import {SignUp} from "./components/auth/sign-up";
+import {Logout} from "./components/auth/logout";
+import {FreelancersList} from "./components/freelancers/freelancers-list";
+import {FileUtils} from "./utils/file-utils";
+
 
 export class Router {
     constructor() {
@@ -15,7 +18,7 @@ export class Router {
             {
                 route: '/',
                 title: 'Дашборд',
-                filePathTemplate: '/templates/dashboard.html',
+                filePathTemplate: '/templates/pages/dashboard.html',
                 useLayout: '/templates/layout.html',
                 load: () => {
                     new Dashboard();
@@ -24,13 +27,13 @@ export class Router {
             {
                 route: '/404',
                 title: 'Страница не найдена',
-                filePathTemplate: '/templates/404.html',
+                filePathTemplate: '/templates/pages/404.html',
                 useLayout: false,
             },
             {
                 route: '/login',
                 title: 'Авторизация',
-                filePathTemplate: '/templates/login.html',
+                filePathTemplate: '/templates/pages/auth/login.html',
                 useLayout: false,
                 load: () => {
                     // добавили нужные для этой страницы классы к body
@@ -49,7 +52,7 @@ export class Router {
             {
                 route: '/sign-up',
                 title: 'Регистрация',
-                filePathTemplate: '/templates/sign-up.html',
+                filePathTemplate: '/templates/pages/auth/sign-up.html',
                 useLayout: false,
                 load: () => {
                     // добавили нужные для этой страницы классы к body
@@ -70,6 +73,17 @@ export class Router {
                 load: () => {
                     new Logout(this.openNewRoute.bind(this));
                 }
+            },
+            {
+                route: '/freelancers',
+                title: 'Фрилансеры',
+                filePathTemplate: '/templates/pages/freelancers/list.html',
+                useLayout: '/templates/layout.html',
+                load: () => {
+                    new FreelancersList(this.openNewRoute.bind(this));
+                },
+                styles: ['dataTables.bootstrap4.min.css'],
+                scripts: ['jquery.dataTables.min.js', 'dataTables.bootstrap4.min.js']
             }
         ];
     }
@@ -97,8 +111,10 @@ export class Router {
 
         if (element) {
             e.preventDefault();
+            const currentRoute = window.location.pathname;
+
             const url = element.href.replace(window.location.origin, ''); // уберем из адреса http://localhost...
-            if (!url || url === '/#' || url.startsWith('javascript:void(0)')) {
+            if (!url || currentRoute === url.replace('#', '') || url.startsWith('javascript:void(0)')) {
                 return;
             }
 
@@ -110,27 +126,40 @@ export class Router {
 
         if (oldRoute) {
             const currentRoute = this.routes.find(item => item.route === oldRoute);
+
             if (currentRoute.styles && currentRoute.styles.length > 0) {
                 currentRoute.styles.forEach(style => {
                     document.querySelector(`link[href='/css/${style}']`).remove(); //удаляем добавленные стили предыдущего роута
                 })
             }
+
+            if (currentRoute.scripts && currentRoute.scripts.length > 0) {
+                currentRoute.scripts.forEach(script => {
+                    document.querySelector(`script[src='/js/${script}']`).remove(); //удаляем добавленные скрипты предыдущего роута
+                })
+            }
+
             // выполним удаление добавленных классов
             if (currentRoute.unload && typeof currentRoute.unload === 'function') {
                 currentRoute.unload();
             }
         }
+
         const urlRoute = window.location.pathname;
         const newRoute = this.routes.find(item => item.route === urlRoute);
 
         if (newRoute) {
+            //подключаем файлы стилей на страницу, если они есть
             if (newRoute.styles && newRoute.styles.length > 0) {
                 newRoute.styles.forEach(style => {
-                    const link = document.createElement('link');
-                    link.rel = 'stylesheet';
-                    link.href = '/css/' + style;
-                    document.head.insertBefore(link, this.adminLteStyleElement)
+                    FileUtils.loadPageStyle('/css/' + style, this.adminLteStyleElement);
                 })
+            }
+            //подключаем файлы скриптов последовательно на страницу, если они есть
+            if (newRoute.scripts && newRoute.scripts.length > 0) {
+                for (const script of newRoute.scripts) {
+                    await FileUtils.loadPageScript('/js/' + script);
+                }
             }
             if (newRoute.title) {
                 this.titlePageElement.innerText = newRoute.title + ' | Freelance Studio';
