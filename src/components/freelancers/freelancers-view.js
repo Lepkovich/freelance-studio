@@ -29,7 +29,6 @@ export class FreelancersView {
             return alert('Возникла ошибка при запросе фрилансера.');
         }
 
-        console.log(result.response);
 
         this.showFreelancer(result.response);
     }
