@@ -19,4 +19,41 @@ export class CommonUtils {
         }
         return levelHtml;
     }
+
+    static getStatusInfo(status) {
+
+        const info = {
+            name: '',
+            color: '',
+             icon: ''
+        }
+
+        switch (status) {
+            case config.orderStatuses.new:
+                info.name = 'Новый';
+                info.color = 'secondary';
+                info.icon = 'star';
+                break;
+            case config.orderStatuses.confirmed:
+                info.name = 'Подтвержден';
+                info.color = 'info';
+                info.icon = 'eye';
+                break;
+            case config.orderStatuses.success:
+                info.name = 'Выполнен';
+                info.color = 'success';
+                info.icon = 'check';
+                break;
+            case config.orderStatuses.canceled:
+                info.name = 'Отменен';
+                info.color = 'danger';
+                info.icon = 'times';
+                break;
+            default:
+                info.name = 'Неизвестно';
+                info.color = 'secondary';
+                info.icon = 'eye';
+        }
+        return info;
+    }
 }

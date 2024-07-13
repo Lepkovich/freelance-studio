@@ -26,7 +26,7 @@ export class FreelancersEdit {
         this.infoInputElement = document.getElementById('infoInput');
         this.avatarInputElement = document.getElementById('avatarInput');
 
-        this.getFreelancer(id).then()
+        this.getFreelancer(id).then();
     }
 
     //забираем с бэкенда данные фрилансера по id
