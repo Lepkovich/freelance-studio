@@ -18,7 +18,7 @@ export class OrdersList {
             return alert('Возникла ошибка при запросе заказов.');
         }
 
-        this.showRecords(result.response.orders)
+        this.showRecords(result.response.orders);
     }
 
     showRecords(orders) {
